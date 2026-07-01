@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stationery Shop Manager - Wholesale Inventory System</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/react.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/react-dom.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .dark {
+            color-scheme: dark;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { Upload, X, Download, Plus, Trash2, Edit2, Sun, Moon, Globe } = window.lucide;
+
+        const StationeryShopManager = () => {
+            const [products, setProducts] = useState([]);
+            const [uploadedFiles, setUploadedFiles] = useState([]);
+            const [extractedData, setExtractedData] = useState([]);
+            const [language, setLanguage] = useState('en');
+            const [theme, setTheme] = useState('auto');
+            const [isDark, setIsDark] = useState(false);
+            const [activeTab, setActiveTab] = useState('products');
+            const [editingId, setEditingId] = useState(null);
+            const [showAddForm, setShowAddForm] = useState(false);
+            const [formData, setFormData] = useState({
+                name: '',
+                wholesalePrice: '',
+                quantity: '',
+            });
+
+            // Detect system theme
+            useEffect(() => {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (theme === 'auto') {
+                    setIsDark(prefersDark);
+                } else {
+                    setIsDark(theme === 'dark');
+                }
+            }, [theme]);
+
+            // Apply theme
+            useEffect(() => {
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }, [isDark]);
+
+            const translations = {
+                en: {
+                    title: 'Stationery Shop Manager',
+                    subtitle: 'Wholesale Inventory & Bill Processing',
+                    uploadFiles: 'Upload Files',
+                    products: 'Products',
+                    bills: 'Bills',
+                    extractedData: 'Extracted Data',
+                    addProduct: 'Add Product',
+                    productName: 'Product Name',
+                    wholesalePrice: 'Wholesale Price (EGP)',
+                    quantity: 'Quantity',
+                    sellingPrice: 'Selling Price (20% Markup)',
+                    calculated: 'Calculated',
+                    remove: 'Remove',
+                    edit: 'Edit',
+                    save: 'Save',
+                    cancel: 'Cancel',
+                    dragDrop: 'Drag and drop files here or click to upload',
+                    supportedFormats: 'Supported: JPG, PNG, JPEG, PDF, TXT, DOC, DOCX, XLS, XLSX',
+                    noProducts: 'No products yet. Add your first product!',
+                    extractingData: 'Extracting data from files...',
+                    successfullyAdded: 'Product added successfully!',
+                    updateMarkup: 'Update with 20% Markup',
+                    currency: 'EGP',
+                    darkMode: 'Dark Mode',
+                    lightMode: 'Light Mode',
+                    autoTheme: 'Auto (System)',
+                    language: 'Language',
+                    theme: 'Theme',
+                    totalValue: 'Total Inventory Value',
+                    exportData: 'Export Data',
+                    fileType: 'File Type',
+                    uploadDate: 'Upload Date',
+                    noFiles: 'No files uploaded yet',
+                    extractData: 'Extract Data',
+                    manualEntry: 'Manual Entry',
+                },
+                ar: {
+                    title: 'مدير محل القرطاسية',
+                    subtitle: 'إدارة المخزون بالجملة ومعالجة الفواتير',
+                    uploadFiles: 'تحميل الملفات',
+                    products: 'المنتجات',
+                    bills: 'الفواتير',
+                    extractedData: 'البيانات المستخرجة',
+                    addProduct: 'إضافة منتج',
+                    productName: 'اسم المنتج',
+                    wholesalePrice: 'سعر الجملة (جنيه)',
+                    quantity: 'الكمية',
+                    sellingPrice: 'سعر البيع (زيادة 20٪)',
+                    calculated: 'محسوب',
+                    remove: 'حذف',
+                    edit: 'تعديل',
+                    save: 'حفظ',
+                    cancel: 'إلغاء',
+                    dragDrop: 'اسحب وأفلت الملفات هنا أو انقر للتحميل',
+                    supportedFormats: 'الصيغ المدعومة: JPG, PNG, JPEG, PDF, TXT, DOC, DOCX, XLS, XLSX',
+                    noProducts: 'لا توجد منتجات حتى الآن. أضف منتجك الأول!',
+                    extractingData: 'جاري استخراج البيانات من الملفات...',
+                    successfullyAdded: 'تم إضافة المنتج بنجاح!',
+                    updateMarkup: 'تحديث بزيادة 20٪',
+                    currency: 'جنيه',
+                    darkMode: 'الوضع الداكن',
+                    lightMode: 'الوضع الفاتح',
+                    autoTheme: 'تلقائي (النظام)',
+                    language: 'اللغة',
+                    theme: 'المظهر',
+                    totalValue: 'إجمالي قيمة المخزون',
+                    exportData: 'تصدير البيانات',
+                    fileType: 'نوع الملف',
+                    uploadDate: 'تاريخ التحميل',
+                    noFiles: 'لم يتم تحميل أي ملفات بعد',
+                    extractData: 'استخراج البيانات',
+                    manualEntry: 'إدخال يدوي',
+                },
+            };
+
+            const t = translations[language];
+
+            const calculateSellingPrice = (wholesalePrice) => {
+                return (parseFloat(wholesalePrice) * 1.2).toFixed(2);
+            };
+
+            const handleFileUpload = (files) => {
+                const fileArray = Array.from(files);
+                const newFiles = fileArray.map((file) => ({
+                    id: Date.now() + Math.random(),
+                    name: file.name,
+                    type: file.type || 'unknown',
+                    size: (file.size / 1024).toFixed(2),
+                    uploadDate: new Date().toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US'),
+                    file: file,
+                }));
+                setUploadedFiles([...uploadedFiles, ...newFiles]);
+            };
+
+            const handleDragDrop = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleFileUpload(e.dataTransfer.files);
+            };
+
+            const extractDataFromFiles = () => {
+                const extracted = uploadedFiles.map((file) => {
+                    // Simulate data extraction from files
+                    const mockExtracted = {
+                        id: file.id,
+                        fileName: file.name,
+                        items: [
+                            {
+                                name: `${file.name.split('.')[0]} - Item 1`,
+                                wholesalePrice: (Math.random() * 100 + 10).toFixed(2),
+                                quantity: Math.floor(Math.random() * 100) + 10,
+                            },
+                            {
+                                name: `${file.name.split('.')[0]} - Item 2`,
+                                wholesalePrice: (Math.random() * 100 + 20).toFixed(2),
+                                quantity: Math.floor(Math.random() * 100) + 10,
+                            },
+                        ],
+                    };
+                    return mockExtracted;
+                });
+                setExtractedData(extracted);
+            };
+
+            const addProductFromExtracted = (item) => {
+                const newProduct = {
+                    id: Date.now(),
+                    name: item.name,
+                    wholesalePrice: parseFloat(item.wholesalePrice),
+                    quantity: item.quantity,
+                    sellingPrice: calculateSellingPrice(item.wholesalePrice),
+                    dateAdded: new Date().toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US'),
+                };
+                setProducts([...products, newProduct]);
+            };
+
+            const handleAddProduct = () => {
+                if (formData.name && formData.wholesalePrice && formData.quantity) {
+                    const newProduct = {
+                        id: Date.now(),
+                        name: formData.name,
+                        wholesalePrice: parseFloat(formData.wholesalePrice),
+                        quantity: parseInt(formData.quantity),
+                        sellingPrice: calculateSellingPrice(formData.wholesalePrice),
+                        dateAdded: new Date().toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US'),
+                    };
+                    if (editingId) {
+                        setProducts(products.map(p => (p.id === editingId ? newProduct : p)));
+                        setEditingId(null);
+                    } else {
+                        setProducts([...products, newProduct]);
+                    }
+                    setFormData({ name: '', wholesalePrice: '', quantity: '' });
+                    setShowAddForm(false);
+                }
+            };
+
+            const deleteProduct = (id) => {
+                setProducts(products.filter(p => p.id !== id));
+            };
+
+            const deleteFile = (id) => {
+                setUploadedFiles(uploadedFiles.filter(f => f.id !== id));
+                setExtractedData(extractedData.filter(d => d.id !== id));
+            };
+
+            const startEdit = (product) => {
+                setFormData({
+                    name: product.name,
+                    wholesalePrice: product.wholesalePrice,
+                    quantity: product.quantity,
+                });
+                setEditingId(product.id);
+                setShowAddForm(true);
+            };
+
+            const totalInventoryValue = products.reduce((sum, p) => sum + (p.wholesalePrice * p.quantity), 0);
+
+            const bgClass = isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900';
+            const cardClass = isDark ? 'bg-gray-800' : 'bg-gray-50';
+            const borderClass = isDark ? 'border-gray-700' : 'border-gray-200';
+            const inputClass = isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300';
+
+            return (
+                <div className={`min-h-screen ${bgClass} transition-colors duration-300`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                    {/* Header */}
+                    <header className={`border-b ${borderClass} sticky top-0 z-50 bg-gradient-to-r from-blue-600 to-purple-600`}>
+                        <div className="max-w-7xl mx-auto px-4 py-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-white">{t.title}</h1>
+                                    <p className="text-blue-100 text-sm">{t.subtitle}</p>
+                                </div>
+                                <div className="flex gap-4">
+                                    {/* Language Switch */}
+                                    <button
+                                        onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-blue-600 font-semibold hover:bg-blue-50 transition"
+                                    >
+                                        <Globe size={20} />
+                                        {language === 'en' ? 'العربية' : 'English'}
+                                    </button>
+
+                                    {/* Theme Switch */}
+                                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white">
+                                        <button
+                                            onClick={() => setTheme('light')}
+                                            className={`p-2 rounded ${theme === 'light' ? 'bg-yellow-400 text-yellow-900' : 'text-gray-600'}`}
+                                            title={t.lightMode}
+                                        >
+                                            <Sun size={20} />
+                                        </button>
+                                        <button
+                                            onClick={() => setTheme('dark')}
+                                            className={`p-2 rounded ${theme === 'dark' ? 'bg-gray-700 text-white' : 'text-gray-600'}`}
+                                            title={t.darkMode}
+                                        >
+                                            <Moon size={20} />
+                                        </button>
+                                        <button
+                                            onClick={() => setTheme('auto')}
+                                            className={`p-2 rounded text-sm ${theme === 'auto' ? 'bg-blue-400 text-white' : 'text-gray-600'}`}
+                                            title={t.autoTheme}
+                                        >
+                                            Auto
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tabs */}
+                            <div className="flex gap-4 border-t border-blue-500 pt-4">
+                                {['products', 'bills', 'extractedData'].map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab)}
+                                        className={`pb-2 font-semibold border-b-2 transition ${
+                                            activeTab === tab ? 'border-white text-white' : 'border-transparent text-blue-100 hover:text-white'
+                                        }`}
+                                    >
+                                        {t[tab]}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="max-w-7xl mx-auto px-4 py-8">
+                        {/* Products Tab */}
+                        {activeTab === 'products' && (
+                            <div className="space-y-6">
+                                {/* Stats */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className={`${cardClass} p-6 rounded-lg border ${borderClass}`}>
+                                        <p className="text-sm opacity-75">{t.products}</p>
+                                        <p className="text-3xl font-bold">{products.length}</p>
+                                    </div>
+                                    <div className={`${cardClass} p-6 rounded-lg border ${borderClass}`}>
+                                        <p className="text-sm opacity-75">{t.totalValue}</p>
+                                        <p className="text-3xl font-bold">{totalInventoryValue.toFixed(2)} {t.currency}</p>
+                                    </div>
+                                    <div className={`${cardClass} p-6 rounded-lg border ${borderClass}`}>
+                                        <p className="text-sm opacity-75">Revenue Potential (20%)</p>
+                                        <p className="text-3xl font-bold">{(totalInventoryValue * 0.2).toFixed(2)} {t.currency}</p>
+                                    </div>
+                                </div>
+
+                                {/* Add Product Button */}
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={() => {
+                                            setShowAddForm(!showAddForm);
+                                            setEditingId(null);
+                                            setFormData({ name: '', wholesalePrice: '', quantity: '' });
+                                        }}
+                                        className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                                    >
+                                        <Plus size={20} />
+                                        {t.addProduct}
+                                    </button>
+                                </div>
+
+                                {/* Add/Edit Form */}
+                                {showAddForm && (
+                                    <div className={`${cardClass} p-6 rounded-lg border ${borderClass} space-y-4`}>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <input
+                                                type="text"
+                                                placeholder={t.productName}
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                className={`px-4 py-2 rounded border ${inputClass} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder={t.wholesalePrice}
+                                                value={formData.wholesalePrice}
+                                                onChange={(e) => setFormData({ ...formData, wholesalePrice: e.target.value })}
+                                                step="0.01"
+                                                className={`px-4 py-2 rounded border ${inputClass} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder={t.quantity}
+                                                value={formData.quantity}
+                                                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                                                className={`px-4 py-2 rounded border ${inputClass} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                                            />
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <button
+                                                onClick={handleAddProduct}
+                                                className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                                            >
+                                                {t.save}
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setShowAddForm(false);
+                                                    setEditingId(null);
+                                                    setFormData({ name: '', wholesalePrice: '', quantity: '' });
+                                                }}
+                                                className={`px-6 py-2 rounded-lg font-semibold transition ${isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-300 hover:bg-gray-400'}`}
+                                            >
+                                                {t.cancel}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Products List */}
+                                {products.length === 0 ? (
+                                    <div className={`${cardClass} p-12 rounded-lg text-center border ${borderClass}`}>
+                                        <p className="text-lg opacity-75">{t.noProducts}</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {products.map((product) => (
+                                            <div key={product.id} className={`${cardClass} p-6 rounded-lg border ${borderClass} space-y-4`}>
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h3 className="text-lg font-bold">{product.name}</h3>
+                                                        <p className="text-sm opacity-75">{product.dateAdded}</p>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => startEdit(product)}
+                                                            className="p-2 hover:bg-blue-500 hover:text-white rounded transition"
+                                                        >
+                                                            <Edit2 size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => deleteProduct(product.id)}
+                                                            className="p-2 hover:bg-red-500 hover:text-white rounded transition"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                                    <div className="bg-blue-500 bg-opacity-20 rounded p-3">
+                                                        <p className="opacity-75">{t.wholesalePrice}</p>
+                                                        <p className="font-bold text-lg">{product.wholesalePrice.toFixed(2)}</p>
+                                                    </div>
+                                                    <div className="bg-purple-500 bg-opacity-20 rounded p-3">
+                                                        <p className="opacity-75">{t.quantity}</p>
+                                                        <p className="font-bold text-lg">{product.quantity}</p>
+                                                    </div>
+                                                    <div className="bg-green-500 bg-opacity-20 rounded p-3">
+                                                        <p className="opacity-75">{t.sellingPrice}</p>
+                                                        <p className="font-bold text-lg">{product.sellingPrice}</p>
+                                                    </div>
+                                                    <div className="bg-orange-500 bg-opacity-20 rounded p-3">
+                                                        <p className="opacity-75">Total Value</p>
+                                                        <p className="font-bold text-lg">{(product.wholesalePrice * product.quantity).toFixed(2)}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Bills Tab */}
+                        {activeTab === 'bills' && (
+                            <div className="space-y-6">
+                                {/* Upload Section */}
+                                <div
+                                    onDragDrop={handleDragDrop}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition ${
+                                        isDark ? 'border-gray-600 hover:border-blue-500' : 'border-gray-300 hover:border-blue-500'
+                                    }`}
+                                >
+                                    <input
+                                        type="file"
+                                        multiple
+                                        onChange={(e) => handleFileUpload(e.target.files)}
+                                        className="hidden"
+                                        id="fileInput"
+                                        accept=".jpg,.jpeg,.png,.pdf,.txt,.doc,.docx,.xls,.xlsx"
+                                    />
+                                    <label htmlFor="fileInput" className="cursor-pointer">
+                                        <Upload size={40} className="mx-auto mb-4 opacity-50" />
+                                        <p className="font-semibold mb-2">{t.dragDrop}</p>
+                                        <p className="text-sm opacity-75">{t.supportedFormats}</p>
+                                    </label>
+                                </div>
+
+                                {/* Extract Data Button */}
+                                {uploadedFiles.length > 0 && (
+                                    <button
+                                        onClick={extractDataFromFiles}
+                                        className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition flex items-center gap-2"
+                                    >
+                                        <Upload size={20} />
+                                        {t.extractData}
+                                    </button>
+                                )}
+
+                                {/* Uploaded Files */}
+                                {uploadedFiles.length > 0 && (
+                                    <div className="space-y-4">
+                                        <h3 className="text-xl font-bold">{t.uploadFiles}</h3>
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {uploadedFiles.map((file) => (
+                                                <div key={file.id} className={`${cardClass} p-4 rounded border ${borderClass} flex justify-between items-center`}>
+                                                    <div>
+                                                        <p className="font-semibold">{file.name}</p>
+                                                        <p className="text-sm opacity-75">{file.uploadDate} • {file.size} KB</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => deleteFile(file.id)}
+                                                        className="p-2 hover:bg-red-500 hover:text-white rounded transition"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {uploadedFiles.length === 0 && (
+                                    <div className={`${cardClass} p-12 rounded-lg text-center border ${borderClass}`}>
+                                        <p className="text-lg opacity-75">{t.noFiles}</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Extracted Data Tab */}
+                        {activeTab === 'extractedData' && (
+                            <div className="space-y-6">
+                                {extractedData.length === 0 ? (
+                                    <div className={`${cardClass} p-12 rounded-lg text-center border ${borderClass}`}>
+                                        <p className="text-lg opacity-75">{t.extractingData}</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {extractedData.map((batch) => (
+                                            <div key={batch.id} className={`${cardClass} rounded-lg border ${borderClass} overflow-hidden`}>
+                                                <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4">
+                                                    <h3 className="text-white font-bold">{batch.fileName}</h3>
+                                                </div>
+                                                <div className="p-6 space-y-4">
+                                                    {batch.items.map((item, idx) => (
+                                                        <div key={idx} className={`border rounded-lg p-4 flex justify-between items-center flex-wrap gap-4`} style={{borderColor: isDark ? '#374151' : '#e5e7eb'}}>
+                                                            <div className="flex-1 min-w-[200px]">
+                                                                <p className="font-semibold">{item.name}</p>
+                                                                <p className="text-sm opacity-75">QTY: {item.quantity}</p>
+                                                            </div>
+                                                            <div className="flex gap-2 flex-wrap">
+                                                                <div className="bg-blue-500 bg-opacity-20 rounded px-3 py-2">
+                                                                    <p className="text-xs opacity-75">{t.wholesalePrice}</p>
+                                                                    <p className="font-bold">{item.wholesalePrice} {t.currency}</p>
+                                                                </div>
+                                                                <div className="bg-green-500 bg-opacity-20 rounded px-3 py-2">
+                                                                    <p className="text-xs opacity-75">{t.sellingPrice}</p>
+                                                                    <p className="font-bold">{calculateSellingPrice(item.wholesalePrice)} {t.currency}</p>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => addProductFromExtracted(item)}
+                                                                    className="px-4 py-2 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition"
+                                                                >
+                                                                    {t.addProduct}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<StationeryShopManager />);
+    </script>
+</body>
+</html>
